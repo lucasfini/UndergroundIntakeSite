@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enum for project status stages
+enum ProjectStatus {
+  SUBMITTED
+  QUEUED
+  IN_PROGRESS
+  REVIEW
+  COMPLETE
+}
+
+// Enum for priority levels
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+// Main project/submission model
+model Project {
+  id                      String          @id @default(cuid())
+  submissionId            String          @unique // Timestamp-based ID from original system
+  zendeskTicketId         String?         @unique // Zendesk ticket ID
+
+  // Customer information
+  customerName            String
+  customerEmail           String
+  customerPosition        String?
+
+  // Project details
+  service                 String
+  eventName               String
+  eventDate               DateTime
+  eventTime               String?
+  eventLocation           String?
+  eventLink               String?
+  content                 String          @default("")
+  callToAction            String?
+  additionalInfo          String?
+
+  // Package and pricing
+  selectedPackage         String?
+  selectedPackageName     String?
+  selectedPackagePrice    Float?
+  selectedAddOns          String?         // JSON string of add-on IDs
+  totalPrice              Float           @default(0)
+
+  // Files
+  uploadedFiles           String?         // JSON string of file info
+
+  // Status and queue management
+  status                  ProjectStatus   @default(SUBMITTED)
+  priority                Priority        @default(NORMAL)
+  queuePosition           Int?            // Null if not in QUEUED status
+  assignedTo              String?         // Staff member name/ID
+
+  // Timestamps
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  estimatedCompletionDate DateTime?
+  completedAt             DateTime?
+
+  // Relations
+  statusHistory           StatusHistory[]
+
+  @@index([customerEmail])
+  @@index([status])
+  @@index([queuePosition])
+  @@index([createdAt])
+}
+
+// Status change history for audit trail
+model StatusHistory {
+  id          String        @id @default(cuid())
+  projectId   String
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  oldStatus   ProjectStatus?
+  newStatus   ProjectStatus
+  changedBy   String?       // Admin user who made the change
+  notes       String?       // Optional notes about the status change
+
+  createdAt   DateTime      @default(now())
+
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+// Allowed departments that can access the promo kit form
+model AllowedDepartment {
+  id          String   @id @default(cuid())
+  name        String   @unique  // Department name from Microsoft Graph (e.g., "CFMU", "Pride")
+  displayName String?            // Optional friendly display name if different from name
+  isActive    Boolean  @default(true)  // Soft delete capability
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?             // Admin who added this department
+
+  @@index([name])
+  @@index([isActive])
+}

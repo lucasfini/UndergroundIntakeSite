@@ -1,0 +1,114 @@
+{
+  "packages": [
+    {
+      "id": "digital-package",
+      "name": "Digital Package",
+      "price": 100,
+      "color": "#3b82f6",
+      "includes": [
+        "4:5 Instagram Post",
+        "Instagram Story",
+        "Campus Screen Graphic"
+      ],
+      "turnaround": "3-4 day turnaround time"
+    },
+    {
+      "id": "multi-event",
+      "name": "Multi-Event Package",
+      "price": 300,
+      "color": "#16a34a",
+      "includes": [
+        "Daily Graphics (5-7 posts)",
+        "Calendar of events graphic",
+        "Instagram Story",
+        "Campus Screen Graphic"
+      ],
+      "turnaround": "1-2 week turnaround time"
+    },
+    {
+      "id": "custom-instagram",
+      "name": "Custom Instagram Package",
+      "price": 0,
+      "color": "#dc2626",
+      "includes": [
+        "Multiple \"Swipe through\" style posts",
+        "Timeline and price base on project size"
+      ],
+      "turnaround": "Turnaround time based on complexity of project",
+      "note": ""
+    },
+    {
+      "id": "self-serve",
+      "name": "Self-Serve 48hr Request",
+      "price": 30,
+      "color": "#eab308",
+      "includes": [],
+      "note": "Only for events within 48 hours. We'll send you a Canva template; you fill it in, we approve it before posting."
+    }
+  ],
+  "addOns": [
+    {
+      "id": "digital-graphics",
+      "name": "Digital Graphics",
+      "price": 0,
+      "category": "digital",
+      "note": "Included in packages"
+    },
+    {
+      "id": "silhouette-ad",
+      "name": "Silhouette Website Ad",
+      "price": 20,
+      "description": "1:1 ad on Sil homepage",
+      "category": "digital"
+    },
+    {
+      "id": "additional-slides",
+      "name": "Additional Slides",
+      "price": 45,
+      "description": "4:5 instagram slide",
+      "category": "digital"
+    },
+    {
+      "id": "design-hourly",
+      "name": "Design",
+      "price": 55,
+      "description": "Charged per hour",
+      "category": "digital"
+    },
+    {
+      "id": "posters",
+      "name": "Posters",
+      "price": 26,
+      "description": "Recommended 8.5x11\" 4-color, printed and put up on MSU boards. Additional posters $0.50 each",
+      "category": "printed"
+    },
+    {
+      "id": "rave-cards",
+      "name": "Rave Cards",
+      "price": 20,
+      "description": "Minimum 100 2.5x3.5\" stacked cards $0.20 each",
+      "category": "printed"
+    },
+    {
+      "id": "musc-atrium-banner",
+      "name": "MUSC Atrium Banner",
+      "price": 160,
+      "description": "Large banner hanging in MUSC",
+      "category": "printed"
+    },
+    {
+      "id": "musc-window-poster",
+      "name": "MUSC Window Poster",
+      "price": 160,
+      "description": "Large poster facing Mills courtyard",
+      "category": "printed"
+    },
+    {
+      "id": "stickers-inhouse",
+      "name": "Stickers (In House)",
+      "price": 50,
+      "description": "100 - 2 inch diecut stickers. 1-2 business day turnaround time",
+      "category": "printed"
+    }
+  ]
+}
