@@ -44,3 +44,6 @@ next-env.d.ts
 # database
 prisma/*.db
 prisma/*.db-journal
+public/PDFS/Board-Maps-Zone-1.pdf
+underground-intake-built.tar.gz
+*.tar.gz # Ignore all tar.gz files
