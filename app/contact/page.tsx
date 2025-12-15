@@ -108,8 +108,8 @@ export default function ContactPage() {
                     <div className="space-y-4 text-xl md:text-2xl">
                       <p className="font-bold">1280 Main Street West, MUSC B117, L8S 4L8, Hamilton, ON</p>
                       <p>
-                        <a href="mailto:underground@msu.mcmaster.ca" className="hover:opacity-70 transition font-semibold">
-                          underground@msu.mcmaster.ca
+                        <a href="mailto:ugprint@msu.mcmaster.ca" className="hover:opacity-70 transition font-semibold">
+                          ugprint@msu.mcmaster.ca
                         </a>
                       </p>
                       <p className="font-semibold">905.525.9140 x22027</p>

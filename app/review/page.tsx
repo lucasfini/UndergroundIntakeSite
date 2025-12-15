@@ -55,6 +55,7 @@ export default function ReviewPage() {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [addOnQuantities, setAddOnQuantities] = useState<Record<string, number>>({})
   const [totalPrice, setTotalPrice] = useState(0)
+  const [postersEnabled, setPostersEnabled] = useState(true)
 
   // Fetch pricing data from API
   useEffect(() => {
@@ -82,6 +83,7 @@ export default function ReviewPage() {
     const storedAddOns = sessionStorage.getItem('selectedAddOns')
     const storedQuantities = sessionStorage.getItem('addOnQuantities')
     const storedTotal = sessionStorage.getItem('totalPrice')
+    const storedPosters = sessionStorage.getItem('postersEnabled')
 
     if (!storedFormData) {
       alert('No form data found. Please start from the beginning.')
@@ -94,6 +96,7 @@ export default function ReviewPage() {
     setSelectedAddOns(storedAddOns ? JSON.parse(storedAddOns) : [])
     setAddOnQuantities(storedQuantities ? JSON.parse(storedQuantities) : {})
     setTotalPrice(storedTotal ? parseFloat(storedTotal) : 0)
+    setPostersEnabled(storedPosters !== null ? JSON.parse(storedPosters) : true)
   }, [router])
 
   const getAddOnById = (id: string) => {
@@ -148,6 +151,7 @@ export default function ReviewPage() {
         selectedAddOns,
         addOnQuantities,
         totalPrice,
+        postersEnabled,
       }
 
       const response = await fetch('/api/submit-complete', {
@@ -170,6 +174,7 @@ export default function ReviewPage() {
       sessionStorage.removeItem('selectedAddOns')
       sessionStorage.removeItem('addOnQuantities')
       sessionStorage.removeItem('totalPrice')
+      sessionStorage.removeItem('postersEnabled')
 
       // Redirect to success page with tracking info
       const params = new URLSearchParams()
@@ -385,6 +390,25 @@ export default function ReviewPage() {
                 <p className="text-gray-400 italic">No package selected</p>
               )}
             </div>
+
+            {/* Display posters switch state for one-time graphic */}
+            {selectedPackage?.id === 'one-time-event' && (
+              <div className="pt-3 border-t border-gray-200">
+                <p className="text-sm text-gray-600 mb-1">Posters (11x17)</p>
+                <p className="font-medium">
+                  {postersEnabled ? (
+                    <span className="text-green-600">✓ Included (45 posters)</span>
+                  ) : (
+                    <span className="text-gray-500">✗ Not included</span>
+                  )}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {postersEnabled
+                    ? 'Will be printed and posted on MSU boards by MSU staff'
+                    : 'Posters excluded from this package'}
+                </p>
+              </div>
+            )}
 
             {selectedAddOns.length > 0 ? (
               <div className="pt-3 border-t border-gray-200">

@@ -134,6 +134,50 @@ function getServiceDisplayName(serviceValue: string): string {
   return serviceDisplayMap[serviceValue] || serviceValue
 }
 
+export async function addZendeskPublicComment(ticketId: string, comment: string): Promise<boolean> {
+  const subdomain = process.env.ZENDESK_SUBDOMAIN
+  const email = process.env.ZENDESK_EMAIL
+  const apiToken = process.env.ZENDESK_API_TOKEN
+
+  if (!subdomain || !email || !apiToken) {
+    console.error('Zendesk credentials not configured')
+    return false
+  }
+
+  const auth = Buffer.from(`${email}/token:${apiToken}`).toString('base64')
+
+  try {
+    const response = await fetch(
+      `https://${subdomain}.zendesk.com/api/v2/tickets/${ticketId}.json`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Basic ${auth}`,
+        },
+        body: JSON.stringify({
+          ticket: {
+            comment: {
+              body: comment,
+              public: true // Public comment - will send email to requester
+            }
+          }
+        })
+      }
+    )
+
+    if (!response.ok) {
+      console.error(`Failed to add public comment to ticket ${ticketId}:`, response.status)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error(`Error adding public comment to ticket ${ticketId}:`, error)
+    return false
+  }
+}
+
 export async function getZendeskTicketStatus(ticketId: string): Promise<string | null> {
   const subdomain = process.env.ZENDESK_SUBDOMAIN
   const email = process.env.ZENDESK_EMAIL
@@ -185,6 +229,25 @@ export async function createZendeskTicket(data: any): Promise<any> {
   }
 
   const auth = Buffer.from(`${email}/token:${apiToken}`).toString('base64')
+
+  // Load pricing data for add-on details and turnaround times
+  let pricingData: any = null
+  try {
+    const fs = await import('fs/promises')
+    const path = await import('path')
+    const pricingPath = path.join(process.cwd(), 'data', 'pricing.json')
+    pricingData = JSON.parse(await fs.readFile(pricingPath, 'utf-8'))
+  } catch (error) {
+    console.error('Error loading pricing data:', error)
+  }
+
+  // Calculate rave cards price based on quantity
+  const calculateRaveCardsPrice = (quantity: number): number => {
+    if (quantity <= 100) return 20
+    const additionalCards = quantity - 100
+    const increments = Math.ceil(additionalCards / 50)
+    return 20 + (increments * 10)
+  }
 
   // Upload files to Zendesk if any exist
   const uploadTokens: string[] = []
@@ -246,9 +309,54 @@ ${totalFiles} file(s) attached to this ticket
 ${uploadTokens.length > 0 ? '(See attachments below)' : '(Upload failed - files saved locally at /uploads/' + data.submissionId + '/)'}
 ` : ''
 
+  // Format add-ons with prices
+  let addOnsSection = 'None'
+  let addOnsTotal = 0
+
+  if (data.selectedAddOns && data.selectedAddOns.length > 0 && pricingData) {
+    const addOnDetails: string[] = []
+
+    data.selectedAddOns.forEach((addOnName: string) => {
+      const addOn = pricingData.addOns.find((a: any) => a.name === addOnName)
+      if (addOn) {
+        const quantity = data.addOnQuantities?.[addOn.id] || (addOn.id === 'rave-cards' ? 100 : 1)
+        let price = 0
+
+        if (addOn.id === 'rave-cards') {
+          price = calculateRaveCardsPrice(quantity)
+        } else if (typeof addOn.price === 'number') {
+          price = addOn.price * quantity
+        }
+
+        addOnsTotal += price
+
+        if (quantity > 1) {
+          addOnDetails.push(`- ${addOnName} (×${quantity}): $${price.toFixed(2)}`)
+        } else {
+          addOnDetails.push(`- ${addOnName}: $${price.toFixed(2)}`)
+        }
+      } else {
+        addOnDetails.push(`- ${addOnName}`)
+      }
+    })
+
+    addOnsSection = addOnDetails.join('\n')
+  }
+
+  // Get turnaround time from package
+  let turnaroundTime = 'N/A'
+  if (data.selectedPackage?.id && pricingData) {
+    const pkg = pricingData.packages.find((p: any) => p.id === data.selectedPackage.id)
+    if (pkg?.turnaround) {
+      turnaroundTime = pkg.turnaround
+    }
+  }
+
   // Format the ticket body
   const ticketBody = `
 New Project Request from ${data.name}
+
+TURNAROUND TIME: ${turnaroundTime}
 
 === CONTACT INFORMATION ===
 Service: ${getServiceDisplayName(data.service)}
@@ -279,18 +387,17 @@ ${data.content}
 Additional Information:
 ${data.additionalInfo || 'N/A'}
 ${filesSection}
-=== PACKAGE & PRICING ===
+=== PACKAGE & ADD-ONS ===
 Selected Package: ${data.selectedPackage?.name || 'None'}
-Package Price: $${data.selectedPackage?.price || 0}
-
-Selected Add-Ons:
 ${
-  data.selectedAddOns && data.selectedAddOns.length > 0
-    ? data.selectedAddOns.join(', ')
-    : 'None'
+  data.selectedPackage?.id === 'one-time-event'
+    ? `Posters (11x17): ${data.postersEnabled !== false ? 'Included (45 posters)' : 'Not included'}`
+    : ''
 }
 
-TOTAL ESTIMATED COST: $${data.totalPrice || 0}
+Add-Ons Selected:
+${addOnsSection}
+${addOnsTotal > 0 ? `\nAdd-Ons Total: $${addOnsTotal.toFixed(2)}` : ''}
 
 ---
 Submitted via Underground Design Intake Portal

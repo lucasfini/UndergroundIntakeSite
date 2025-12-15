@@ -12,6 +12,64 @@ interface StatusUpdateEmailData {
   estimatedCompletionDate?: Date | null
 }
 
+export async function sendAcknowledgmentEmail(
+  to: string,
+  name: string,
+  eventName: string
+): Promise<boolean> {
+  const apiKey = process.env.EMAIL_API_KEY
+  const from = process.env.EMAIL_FROM || 'noreply@undergrounddesign.ca'
+
+  if (!apiKey) {
+    console.warn('Email API key not configured. Skipping acknowledgment email.')
+    return false
+  }
+
+  const emailBody = `
+Hi ${name},
+
+Thank you for contacting Underground Media + Design!
+
+We have received your project request for "${eventName}" and are processing it now.
+
+You will receive another email shortly with:
+- Your tracking ID
+- Form submission details
+- Next steps
+
+If you have any immediate questions, please contact us at ugprint@msu.mcmaster.ca.
+
+Best regards,
+Underground Media + Design Team
+McMaster Student Union
+
+---
+This is an automated message. Please do not reply to this email.
+  `.trim()
+
+  try {
+    // Using the same email service as confirmation emails
+    const response = await fetch('https://api.your-email-service.com/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from,
+        to,
+        subject: `Request Received - ${eventName}`,
+        text: emailBody,
+      }),
+    })
+
+    return response.ok
+  } catch (error) {
+    console.error('Failed to send acknowledgment email:', error)
+    return false
+  }
+}
+
 export async function sendConfirmationEmail(
   to: string,
   name: string,

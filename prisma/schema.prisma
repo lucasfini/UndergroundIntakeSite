@@ -58,6 +58,8 @@ model Project {
   selectedPackageName     String?
   selectedPackagePrice    Float?
   selectedAddOns          String?         // JSON string of add-on IDs
+  addOnQuantities         String?         // JSON string of add-on quantities
+  postersEnabled          Boolean?        // Whether posters are enabled (for one-time graphic package)
   totalPrice              Float           @default(0)
 
   // Files
