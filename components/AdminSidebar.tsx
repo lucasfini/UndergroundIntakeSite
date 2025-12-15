@@ -4,6 +4,7 @@ import React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { PublicClientApplication } from '@azure/msal-browser'
+import { DollarSign, Building2, ClipboardList, FolderOpen, Home, LogOut, LayoutDashboard } from 'lucide-react'
 
 interface AdminSidebarProps {
   msalInstance?: PublicClientApplication | null
@@ -28,15 +29,19 @@ export function AdminSidebar({ msalInstance, userName, onLogout }: AdminSidebarP
   }
 
   const navItems = [
-    { path: '/admin', label: 'Pricing', icon: '💰' },
-    { path: '/admin/departments', label: 'Departments', icon: '🏢' },
-    { path: '/admin/queue', label: 'Queue', icon: '📋' },
-    { path: '/admin/projects', label: 'Recent Projects', icon: '📁' },
+    { path: '/admin/overview', label: 'Overview', icon: LayoutDashboard },
+    { path: '/admin', label: 'Pricing', icon: DollarSign },
+    { path: '/admin/departments', label: 'Departments', icon: Building2 },
+    { path: '/admin/queue', label: 'Queue', icon: ClipboardList },
+    { path: '/admin/projects', label: 'Recent Projects', icon: FolderOpen },
   ]
 
   const isActive = (path: string) => {
     if (path === '/admin') {
       return pathname === '/admin'
+    }
+    if (path === '/admin/overview') {
+      return pathname === '/admin/overview'
     }
     return pathname?.startsWith(path)
   }
@@ -46,20 +51,23 @@ export function AdminSidebar({ msalInstance, userName, onLogout }: AdminSidebarP
       {/* Navigation Links */}
       <nav className="flex-1 py-6">
         <div className="space-y-1 px-3">
-          {navItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                isActive(item.path)
-                  ? 'bg-[#A6E7DE] text-[#0f243a] font-semibold'
-                  : 'text-white/80 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              <span className="text-xl">{item.icon}</span>
-              <span className="text-sm">{item.label}</span>
-            </button>
-          ))}
+          {navItems.map((item) => {
+            const Icon = item.icon
+            return (
+              <button
+                key={item.path}
+                onClick={() => router.push(item.path)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive(item.path)
+                    ? 'bg-[#A6E7DE] text-[#0f243a] font-semibold'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <Icon size={20} />
+                <span className="text-sm">{item.label}</span>
+              </button>
+            )
+          })}
         </div>
 
         <div className="mt-6 px-3">
@@ -68,14 +76,14 @@ export function AdminSidebar({ msalInstance, userName, onLogout }: AdminSidebarP
             onClick={() => router.push('/')}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-all"
           >
-            <span className="text-xl">🏠</span>
+            <Home size={20} />
             <span className="text-sm">View Site</span>
           </button>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-all"
           >
-            <span className="text-xl">🚪</span>
+            <LogOut size={20} />
             <span className="text-sm">Logout</span>
           </button>
         </div>

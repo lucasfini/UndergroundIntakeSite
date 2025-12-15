@@ -38,7 +38,10 @@ async function uploadFileToZendesk(
 
     // Read the file from the filesystem
     const fullPath = path.join(process.cwd(), 'public', filePath)
+    console.log(`Reading file from: ${fullPath}`)
+
     const fileBuffer = await fs.readFile(fullPath)
+    console.log(`File read successfully, size: ${fileBuffer.length} bytes`)
 
     // Upload to Zendesk
     const uploadResponse = await fetch(
@@ -54,11 +57,13 @@ async function uploadFileToZendesk(
     )
 
     if (!uploadResponse.ok) {
-      console.error(`Failed to upload ${fileName}:`, await uploadResponse.text())
+      const errorText = await uploadResponse.text()
+      console.error(`Failed to upload ${fileName} (${uploadResponse.status}):`, errorText)
       return null
     }
 
     const uploadData: ZendeskUploadResponse = await uploadResponse.json()
+    console.log(`Upload successful, token: ${uploadData.upload.token}`)
     return uploadData.upload.token
   } catch (error) {
     console.error(`Error uploading file ${fileName}:`, error)
@@ -76,6 +81,7 @@ function getServiceZendeskTag(serviceValue: string): string {
     'child-care-centre': 'child_care_centre',
     'diversity-equity-network': 'diversity___equity_network', // Note: triple underscore!
     'efrt': 'efrt',
+    'first-year-council': 'first_year_council',
     'food-collective-centre': 'food_collective_centre',
     'the-grind': 'the_grind',
     'hotspot': 'hotspot',
@@ -83,10 +89,12 @@ function getServiceZendeskTag(serviceValue: string): string {
     'maccess': 'maccess',
     'maroons': 'maroons',
     'ombuds': 'ombuds',
+    'pride': 'pride',
     'pride-community-centre': 'pride_community_centre',
     'shec': 'shec',
     'spark': 'spark',
     'swat': 'swat',
+    'swhat': 'swhat',
     'the-silhouette': 'the_silhouette',
     'twelve-eighty': 'twelve_eighty',
     'union-market': 'union_market',
@@ -104,6 +112,7 @@ function getServiceDisplayName(serviceValue: string): string {
     'child-care-centre': 'Child Care Centre',
     'diversity-equity-network': 'Diversity + Equity Network',
     'efrt': 'EFRT',
+    'first-year-council': 'First Year Council',
     'food-collective-centre': 'Food Collective Centre',
     'the-grind': 'The Grind',
     'hotspot': 'HotSpot',
@@ -111,10 +120,12 @@ function getServiceDisplayName(serviceValue: string): string {
     'maccess': 'Maccess',
     'maroons': 'Maroons',
     'ombuds': 'Ombuds',
+    'pride': 'Pride',
     'pride-community-centre': 'Pride Community Centre',
     'shec': 'SHEC',
     'spark': 'Spark',
     'swat': 'SWAT',
+    'swhat': 'SWHAT',
     'the-silhouette': 'The Silhouette',
     'twelve-eighty': 'Twelve Eighty',
     'union-market': 'Union Market',
@@ -181,11 +192,11 @@ export async function createZendeskTicket(data: any): Promise<any> {
   if (data.uploadedFiles) {
     const allFiles: Array<{ path: string; name: string }> = []
 
-    // Collect logo files
-    if (data.uploadedFiles.logos && Array.isArray(data.uploadedFiles.logos)) {
-      data.uploadedFiles.logos.forEach((fileName: string) => {
+    // Collect visual reference files
+    if (data.uploadedFiles.visualReferences && Array.isArray(data.uploadedFiles.visualReferences)) {
+      data.uploadedFiles.visualReferences.forEach((fileName: string) => {
         allFiles.push({
-          path: `/uploads/${data.submissionId}/logo-${fileName}`,
+          path: `/uploads/${data.submissionId}/visual-${fileName}`,
           name: fileName,
         })
       })
@@ -201,18 +212,31 @@ export async function createZendeskTicket(data: any): Promise<any> {
       })
     }
 
+    console.log('Files to upload to Zendesk:', {
+      totalFiles: allFiles.length,
+      visualReferences: data.uploadedFiles.visualReferences?.length || 0,
+      attachments: data.uploadedFiles.attachments?.length || 0,
+      files: allFiles
+    })
+
     // Upload all files to Zendesk
     for (const file of allFiles) {
+      console.log(`Uploading file to Zendesk: ${file.path}`)
       const token = await uploadFileToZendesk(file.path, file.name, subdomain, auth)
       if (token) {
+        console.log(`Successfully uploaded: ${file.name}`)
         uploadTokens.push(token)
+      } else {
+        console.error(`Failed to upload: ${file.name}`)
       }
     }
+
+    console.log(`Total upload tokens received: ${uploadTokens.length}`)
   }
 
   // Format uploaded files section
   const totalFiles =
-    (data.uploadedFiles?.logos?.length || 0) +
+    (data.uploadedFiles?.visualReferences?.length || 0) +
     (data.uploadedFiles?.attachments?.length || 0)
 
   const filesSection = totalFiles > 0 ? `
@@ -235,10 +259,16 @@ Email: ${data.email}
 === EVENT DETAILS ===
 Event Name: ${data.eventName}
 Date: ${data.eventDate}
-Time: ${data.time || 'N/A'}
+Start Time: ${data.startTime || 'N/A'}
+End Time: ${data.endTime || 'N/A'}
 Location: ${data.location || 'N/A'}
 Link: ${data.link || 'N/A'}
-Canva Link: ${data.canvaLink || 'N/A'}
+
+Collaboration Details:
+${data.collaborationDetails || 'N/A'}
+
+=== VISUAL REFERENCES ===
+Design Link (Canva/Figma): ${data.visualReferenceLink || 'N/A'}
 
 === PROJECT DETAILS ===
 Call to Action: ${data.callToAction || 'N/A'}
@@ -280,7 +310,13 @@ Submitted via Underground Design Intake Portal
   }
 
   // Map essential form data to custom fields (for sidebar display)
-  addCustomField(process.env.ZENDESK_FIELD_SERVICE_TYPE, getServiceZendeskTag(data.service))
+  const serviceTag = getServiceZendeskTag(data.service)
+  console.log('Service Type Debugging:', {
+    originalService: data.service,
+    mappedTag: serviceTag,
+    fieldId: process.env.ZENDESK_FIELD_SERVICE_TYPE
+  })
+  addCustomField(process.env.ZENDESK_FIELD_SERVICE_TYPE, serviceTag)
   addCustomField(process.env.ZENDESK_FIELD_SELECTED_PACKAGE, data.selectedPackage?.name)
   addCustomField(
     process.env.ZENDESK_FIELD_SELECTED_ADDONS,
@@ -319,6 +355,8 @@ Submitted via Underground Design Intake Portal
     tags: ['intake-portal', 'project-request', getServiceZendeskTag(data.service)],
     custom_fields: customFields.length > 0 ? customFields : undefined,
   }
+
+  console.log('Zendesk Custom Fields:', JSON.stringify(customFields, null, 2))
 
   const response = await fetch(`https://${subdomain}.zendesk.com/api/v2/tickets.json`, {
     method: 'POST',

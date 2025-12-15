@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface HeaderProps {
   currentPage?: string
@@ -10,6 +10,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ currentPage = 'home' }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [bannerMessage, setBannerMessage] = useState('We are open Monday - Friday | 10am - 4pm')
 
   const navLinks = [
     { href: '/prices', label: 'Prices', id: 'prices' },
@@ -18,6 +19,25 @@ export const Header: React.FC<HeaderProps> = ({ currentPage = 'home' }) => {
     { href: '/contact', label: 'Contact Us', id: 'contact' },
     { href: '/track', label: 'Track Progress', id: 'track' },
   ]
+
+  useEffect(() => {
+    // Fetch banner message
+    const fetchBannerMessage = async () => {
+      try {
+        const response = await fetch('/api/site-config')
+        if (response.ok) {
+          const config = await response.json()
+          if (config.bannerMessage) {
+            setBannerMessage(config.bannerMessage)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching banner message:', error)
+      }
+    }
+
+    fetchBannerMessage()
+  }, [])
 
   const handleLogoClick = () => {
     // Clear all form-related sessionStorage when navigating to homepage
@@ -175,7 +195,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPage = 'home' }) => {
       {/* Hours Banner */}
       <div className="py-2 px-4 sm:px-6 text-center" style={{ backgroundColor: '#A6E7DE', color: '#1C3450' }}>
         <p className="text-xs sm:text-sm font-medium">
-          We are open Monday - Friday | 10am - 4pm
+          {bannerMessage}
         </p>
       </div>
     </>

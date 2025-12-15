@@ -20,7 +20,7 @@ export const TextArea: React.FC<TextAreaProps> = ({ label, error, tooltip, class
         </label>
       )}
       <textarea
-        className={`w-full px-4 py-2 border ${
+        className={`w-full px-4 py-3 text-base border ${
           error ? 'border-red-500' : 'border-gray-300'
         } rounded-md focus:outline-none transition resize-y ${className}`}
         onFocus={(e) => {

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { Check, Clock, Settings, Eye, CheckCircle } from 'lucide-react'
 
 export type ProjectStatus =
   | 'SUBMITTED'
@@ -15,11 +16,11 @@ interface ProgressBarProps {
 }
 
 const stages = [
-  { key: 'SUBMITTED', label: 'Submitted', icon: '✓' },
-  { key: 'QUEUED', label: 'In Queue', icon: '⏱' },
-  { key: 'IN_PROGRESS', label: 'In Progress', icon: '⚙' },
-  { key: 'REVIEW', label: 'Review', icon: '👁' },
-  { key: 'COMPLETE', label: 'Complete', icon: '🎉' }
+  { key: 'SUBMITTED', label: 'Submitted', icon: Check },
+  { key: 'QUEUED', label: 'In Queue', icon: Clock },
+  { key: 'IN_PROGRESS', label: 'In Progress', icon: Settings },
+  { key: 'REVIEW', label: 'Review', icon: Eye },
+  { key: 'COMPLETE', label: 'Complete', icon: CheckCircle }
 ]
 
 export default function ProgressBar({ currentStatus, className = '' }: ProgressBarProps) {
@@ -46,6 +47,7 @@ export default function ProgressBar({ currentStatus, className = '' }: ProgressB
             const isComplete = index < currentIndex
             const isCurrent = index === currentIndex
             const isPending = index > currentIndex
+            const Icon = stage.icon
 
             return (
               <div key={stage.key} className="flex flex-col items-center relative">
@@ -58,7 +60,7 @@ export default function ProgressBar({ currentStatus, className = '' }: ProgressB
                     ${isPending ? 'bg-white border-gray-300 text-gray-400' : ''}
                   `}
                 >
-                  {isComplete ? '✓' : stage.icon}
+                  {isComplete ? <Check size={20} /> : <Icon size={20} />}
                 </div>
                 <span
                   className={`
@@ -82,6 +84,7 @@ export default function ProgressBar({ currentStatus, className = '' }: ProgressB
           const isComplete = index < currentIndex
           const isCurrent = index === currentIndex
           const isPending = index > currentIndex
+          const Icon = stage.icon
 
           return (
             <div key={stage.key} className="flex items-start gap-4">
@@ -96,7 +99,7 @@ export default function ProgressBar({ currentStatus, className = '' }: ProgressB
                     ${isPending ? 'bg-white border-gray-300 text-gray-400' : ''}
                   `}
                 >
-                  {isComplete ? '✓' : stage.icon}
+                  {isComplete ? <Check size={20} /> : <Icon size={20} />}
                 </div>
                 {index < stages.length - 1 && (
                   <div

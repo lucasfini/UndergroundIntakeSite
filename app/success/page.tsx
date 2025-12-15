@@ -4,7 +4,6 @@ import { Footer } from '@/components/Footer'
 
 interface SearchParams {
   ticketId?: string
-  queuePosition?: string
 }
 
 export default async function SuccessPage({
@@ -14,7 +13,6 @@ export default async function SuccessPage({
 }) {
   const params = await searchParams
   const ticketId = params?.ticketId
-  const queuePosition = params?.queuePosition
 
   return (
     <main className="min-h-screen flex flex-col bg-white">
@@ -48,8 +46,7 @@ export default async function SuccessPage({
           </h2>
 
           <p className="text-lg text-gray-600 mb-8">
-            Thank you for submitting your project request. Our team will review your
-            submission and get back to you within 1-2 business days.
+            Thank you for submitting your project request. Rene or Elizabeth will review your submission and you will hear from them shortly.
           </p>
 
           {/* Tracking Information */}
@@ -61,12 +58,6 @@ export default async function SuccessPage({
                   <p className="text-sm text-blue-700 mb-1">Your Tracking ID:</p>
                   <p className="font-mono font-bold text-blue-900 text-lg">{ticketId}</p>
                 </div>
-                {queuePosition && (
-                  <div>
-                    <p className="text-sm text-blue-700 mb-1">Current Queue Position:</p>
-                    <p className="font-bold text-blue-900">#{queuePosition}</p>
-                  </div>
-                )}
                 <Link
                   href={`/track/${ticketId}`}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition mt-2"
@@ -96,12 +87,12 @@ export default async function SuccessPage({
               <li className="flex items-start">
                 <span className="text-underground-teal mr-2">1.</span>
                 <span>
-                  You&rsquo;ll receive a confirmation email with your tracking link
+                  Please check your inbox for a confirmation email and your tracking ID
                 </span>
               </li>
               <li className="flex items-start">
                 <span className="text-underground-teal mr-2">2.</span>
-                <span>Our team will review your project requirements</span>
+                <span>Rene or Elizabeth will review your project requirements</span>
               </li>
               <li className="flex items-start">
                 <span className="text-underground-teal mr-2">3.</span>
@@ -115,32 +106,34 @@ export default async function SuccessPage({
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-            <p className="text-sm text-blue-900">
-              <strong>Need to make changes?</strong> Contact us at{' '}
-              <a
-                href="mailto:ugmanager@msu.mcmaster.ca"
-                className="text-underground-teal hover:underline"
-              >
-                ugmanager@msu.mcmaster.ca
-              </a>
+            <p className="text-sm text-blue-900 mb-4">
+              <strong>Have a question or inquiry?</strong>
             </p>
-            <p className="text-sm text-blue-900 mt-2">
+            <Link
+              href="/contact"
+              className="inline-block px-6 py-3 rounded-md transition mb-4"
+              style={{ backgroundColor: '#A6E7DE', color: '#1C3450' }}
+            >
+              Contact us here
+            </Link>
+            <p className="text-sm text-blue-900 mt-4">
               <strong>Office Hours:</strong> Monday - Friday | 10am - 4pm
             </p>
           </div>
 
           <div className="space-x-4">
             <Link
-              href="/select-service"
-              className="inline-block px-6 py-3 bg-underground-teal text-white rounded-md hover:bg-underground-green transition"
+              href="/"
+              className="inline-block px-6 py-3 rounded-md transition"
+              style={{ backgroundColor: '#A6E7DE', color: '#1C3450' }}
             >
-              Submit Another Request
+              Home
             </Link>
             <Link
-              href="/"
+              href="/select-service"
               className="inline-block px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-md hover:border-gray-400 transition"
             >
-              Return Home
+              Submit Another Request
             </Link>
           </div>
         </div>

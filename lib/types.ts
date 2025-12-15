@@ -7,9 +7,9 @@ export interface ContactInfo {
 
 export interface EventDetails {
   eventName: string
-  time: string
+  startTime: string
+  endTime: string
   eventDate: string
-  logos: File[]
   location: string
   link: string
 }
@@ -25,13 +25,23 @@ export interface FormData {
   files: File[]
 }
 
+export interface PackageIncludeItem {
+  type?: 'header'
+  content?: string  // For headers
+  size?: string     // For regular items
+  item?: string     // For regular items
+  quantity?: string // For regular items
+  note?: string     // Optional note for items
+}
+
 export interface PackageOption {
   id: string
   name: string
   price: number
-  includes: string[]
+  includes: (PackageIncludeItem | string)[]
   turnaround?: string
   color?: string
+  image?: string
   note?: string
 }
 

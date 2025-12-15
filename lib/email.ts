@@ -16,7 +16,9 @@ export async function sendConfirmationEmail(
   to: string,
   name: string,
   eventName: string,
-  ticketId?: string
+  ticketId?: string,
+  addOnsTotal?: number,
+  selectedAddOns?: string[]
 ): Promise<boolean> {
   const apiKey = process.env.EMAIL_API_KEY
   const from = process.env.EMAIL_FROM || 'noreply@undergrounddesign.ca'
@@ -29,6 +31,12 @@ export async function sendConfirmationEmail(
   // This is a template for SendGrid or Resend
   // You can adapt this based on your email service provider
 
+  const addOnsSection = addOnsTotal && addOnsTotal > 0 ? `
+
+Add-ons Selected: ${selectedAddOns && selectedAddOns.length > 0 ? selectedAddOns.join(', ') : 'None'}
+Total Add-ons Cost: $${addOnsTotal.toFixed(2)}
+` : ''
+
   const emailBody = `
 Hi ${name},
 
@@ -37,7 +45,7 @@ Thank you for submitting your project request for "${eventName}"!
 We've received your request and our team will review it shortly. You should hear back from us within 1-2 business days.
 
 ${ticketId ? `Your reference number is: ${ticketId}` : ''}
-
+${addOnsSection}
 If you have any questions, please contact us at ugmanager@msu.mcmaster.ca.
 
 Best regards,

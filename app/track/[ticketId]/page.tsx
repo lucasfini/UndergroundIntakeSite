@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import ProgressBar, { ProjectStatus } from '@/components/ProgressBar'
+import { AlertCircle } from 'lucide-react'
 
 interface Project {
   id: string
@@ -103,7 +104,9 @@ export default function TrackPage() {
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
-            <div className="text-red-500 text-5xl mb-4">⚠</div>
+            <div className="flex justify-center mb-4">
+              <AlertCircle className="w-16 h-16 text-red-500" strokeWidth={1.5} />
+            </div>
             <h1 className="text-2xl font-bold text-[#1C3450] mb-2">Project Not Found</h1>
             <p className="text-gray-600 mb-6">{error}</p>
             <Link
@@ -156,9 +159,6 @@ export default function TrackPage() {
         break
       case 'Multi-Event Package':
         daysToComplete = 14 // Max of 1-2 weeks (14 days)
-        break
-      case 'Self-Serve 48hr Request':
-        daysToComplete = 2 // 48 hours
         break
       case 'Custom Instagram Package':
         return 'Based on project complexity'

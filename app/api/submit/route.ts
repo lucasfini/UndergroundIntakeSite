@@ -17,20 +17,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle file uploads
-    const logoFiles = formData.getAll('logos') as File[]
     const attachmentFiles = formData.getAll('attachments') as File[]
+    const visualReferenceFiles = formData.getAll('visualReferences') as File[]
 
-    const uploadedLogos: string[] = []
     const uploadedAttachments: string[] = []
+    const uploadedVisualReferences: string[] = []
 
-    // Save logo files
-    for (const file of logoFiles) {
+    // Save visual reference files
+    for (const file of visualReferenceFiles) {
       if (file.size > 0) {
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
-        const filePath = join(uploadDir, `logo-${file.name}`)
+        const filePath = join(uploadDir, `visual-${file.name}`)
         await writeFile(filePath, buffer)
-        uploadedLogos.push(`/uploads/${submissionId}/logo-${file.name}`)
+        uploadedVisualReferences.push(`/uploads/${submissionId}/visual-${file.name}`)
       }
     }
 
@@ -52,14 +52,18 @@ export async function POST(request: NextRequest) {
       position: formData.get('position'),
       email: formData.get('email'),
       eventName: formData.get('eventName'),
-      time: formData.get('time'),
+      startTime: formData.get('startTime'),
+      endTime: formData.get('endTime'),
       eventDate: formData.get('eventDate'),
       location: formData.get('location'),
       link: formData.get('link'),
+      collaborationDetails: formData.get('collaborationDetails'),
+      hasVisualReferences: formData.get('hasVisualReferences'),
+      visualReferenceLink: formData.get('visualReferenceLink'),
       callToAction: formData.get('callToAction'),
       content: formData.get('content'),
       additionalInfo: formData.get('additionalInfo'),
-      uploadedLogos,
+      uploadedVisualReferences,
       uploadedAttachments,
       submissionId,
     }

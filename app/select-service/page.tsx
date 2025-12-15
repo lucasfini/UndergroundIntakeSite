@@ -47,7 +47,7 @@ export default function SelectServicePage() {
 
         {/* Service tiles */}
         <div className="bg-[#A6E7DE]">
-          <div className="max-w-6xl mx-auto px-6 py-14 grid md:grid-cols-2 gap-6">
+          <div className="max-w-7xl mx-auto px-6 py-14 grid md:grid-cols-3 gap-6">
             <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-[#1C3450]/10">
               <div className="absolute inset-0 bg-gradient-to-br from-[#e8f8f4] via-white to-[#f3fbf9]" />
               <div className="relative p-8 space-y-4">
@@ -73,6 +73,24 @@ export default function SelectServicePage() {
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C3450] text-[#A6E7DE] text-xs font-semibold uppercase tracking-wide">
                   Coming Soon
                 </div>
+                <h2 className="text-3xl font-bold text-[#1C3450] opacity-60">Canva Design</h2>
+                <p className="text-lg text-[#264766] opacity-70">
+                  Bring your fully thought-out design using our MSU brand templates. We provide Canva templates to choose from and review your design to ensure it&apos;s ready for posting.
+                </p>
+                <div className="pt-2">
+                  <div className="inline-flex items-center px-4 py-3 rounded-lg font-semibold text-[#1C3450] bg-[#A6E7DE]/50 border border-[#1C3450]/20 opacity-70 cursor-not-allowed">
+                    Coming Soon
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-2xl border border-dashed border-[#1C3450]/30 bg-white/60 backdrop-blur">
+              <div className="absolute inset-0 bg-gradient-to-br from-white to-[#e6f3ef]" />
+              <div className="relative p-8 space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1C3450] text-[#A6E7DE] text-xs font-semibold uppercase tracking-wide">
+                  Coming Soon
+                </div>
                 <h2 className="text-3xl font-bold text-[#1C3450] opacity-60">Design + Signage</h2>
                 <p className="text-lg text-[#264766] opacity-70">
                   High-impact signage and large-format pieces to make your presence stand out. Launching soon—stay tuned.
@@ -85,7 +103,7 @@ export default function SelectServicePage() {
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-[#1C3450]/10 md:col-span-2">
+            <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl border border-[#1C3450]/10 md:col-span-3">
               <div className="absolute inset-0 bg-gradient-to-br from-[#f3fbf9] via-white to-[#e8f8f4]" />
               <div className="relative p-8 space-y-4">
                 <h2 className="text-3xl font-bold text-[#1C3450]">Standard Prints</h2>

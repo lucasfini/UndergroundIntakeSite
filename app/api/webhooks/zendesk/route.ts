@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     const expectedToken = process.env.ZENDESK_WEBHOOK_SECRET
 
     if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+      console.log('Webhook authentication failed')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -52,24 +53,48 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = await request.json()
-    const { ticket_id, custom_status, assignee_name, updated_at } = payload
+    console.log('Zendesk webhook payload:', JSON.stringify(payload, null, 2))
 
-    if (!ticket_id) {
+    // Support both custom payload format and standard Zendesk webhook format
+    let ticketId: string | undefined
+    let customStatus: string | undefined
+    let assigneeName: string | undefined
+    let updatedAt: string | undefined
+
+    // Check if it's a standard Zendesk webhook (has 'current_value' and 'ticket_id')
+    if (payload.current_value && payload.ticket_id) {
+      ticketId = payload.ticket_id.toString()
+      customStatus = payload.current_value
+      assigneeName = payload.assignee_name
+      updatedAt = payload.updated_at
+    }
+    // Check if it's our custom format
+    else if (payload.ticket_id || payload.ticketId) {
+      ticketId = (payload.ticket_id || payload.ticketId).toString()
+      customStatus = payload.custom_status || payload.status
+      assigneeName = payload.assignee_name
+      updatedAt = payload.updated_at
+    }
+
+    if (!ticketId) {
+      console.error('Missing ticket_id in payload')
       return NextResponse.json(
         { error: 'Missing ticket_id' },
         { status: 400 }
       )
     }
 
+    console.log(`Processing webhook for ticket ${ticketId}, status: ${customStatus}`)
+
     // Find project by Zendesk ticket ID
     const project = await prisma.project.findFirst({
       where: {
-        zendeskTicketId: ticket_id.toString()
+        zendeskTicketId: ticketId.toString()
       }
     })
 
     if (!project) {
-      console.log(`Project not found for Zendesk ticket ID: ${ticket_id}`)
+      console.log(`Project not found for Zendesk ticket ID: ${ticketId}`)
       return NextResponse.json(
         { message: 'Project not found, skipping update' },
         { status: 200 }
@@ -77,10 +102,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Map Zendesk custom status to our status
-    const newStatus = custom_status ? mapZendeskStatusToProjectStatus(custom_status) : null
+    const newStatus = customStatus ? mapZendeskStatusToProjectStatus(customStatus) : null
 
     if (!newStatus) {
-      console.log(`Could not map Zendesk status "${custom_status}" to ProjectStatus`)
+      console.log(`Could not map Zendesk status "${customStatus}" to ProjectStatus`)
       return NextResponse.json(
         { message: 'Status not mapped, skipping update' },
         { status: 200 }
@@ -88,16 +113,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Only update if status has changed
-    if (project.status === newStatus && project.assignedTo === assignee_name) {
+    if (project.status === newStatus && project.assignedTo === assigneeName) {
+      console.log('No changes detected, skipping update')
       return NextResponse.json(
         { message: 'No changes detected' },
         { status: 200 }
       )
     }
 
+    console.log(`Updating project ${project.id} from ${project.status} to ${newStatus}`)
+
     // Prepare update data
     const updateData: any = {
-      updatedAt: updated_at ? new Date(updated_at) : new Date()
+      updatedAt: updatedAt ? new Date(updatedAt) : new Date()
     }
 
     if (newStatus !== project.status) {
@@ -144,8 +172,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (assignee_name && assignee_name !== project.assignedTo) {
-      updateData.assignedTo = assignee_name
+    if (assigneeName && assigneeName !== project.assignedTo) {
+      updateData.assignedTo = assigneeName
     }
 
     // Update project with transaction

@@ -54,19 +54,20 @@ export default function FormPage() {
     position: '',
     email: '',
     eventName: '',
-    time: '',
+    startTime: '',
+    endTime: '',
     eventDate: '',
     location: '',
     link: '',
-    hasCanvaLink: false,
-    canvaLink: '',
+    collaborationDetails: '',
+    hasVisualReferences: false,
+    visualReferenceLink: '',
     callToAction: '',
-    content: '',
     additionalInfo: '',
+    content: '',
   })
-
-  const [logoFiles, setLogoFiles] = useState<File[]>([])
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([])
+  const [visualReferenceFiles, setVisualReferenceFiles] = useState<File[]>([])
 
   // Check authentication - redirect to select-service if not authenticated
   useEffect(() => {
@@ -124,13 +125,13 @@ export default function FormPage() {
     setFormData((prev) => ({
       ...prev,
       [name]: checked,
-      ...(name === 'hasCanvaLink' && !checked ? { canvaLink: '' } : {})
+      ...(name === 'hasVisualReferences' && !checked ? { visualReferenceLink: '' } : {})
     }))
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
     }
-    if (name === 'hasCanvaLink' && errors.canvaLink) {
-      setErrors((prev) => ({ ...prev, canvaLink: '' }))
+    if (name === 'hasVisualReferences' && errors.visualReferenceLink) {
+      setErrors((prev) => ({ ...prev, visualReferenceLink: '' }))
     }
   }
 
@@ -143,13 +144,38 @@ export default function FormPage() {
     if (!formData.email) newErrors.email = 'Email is required'
     if (!formData.eventName) newErrors.eventName = 'Event name is required'
     if (!formData.eventDate) newErrors.eventDate = 'Event date is required'
+    if (!formData.startTime) newErrors.startTime = 'Start time is required'
+    if (!formData.callToAction) newErrors.callToAction = 'Call to action is required'
     if (!formData.content) newErrors.content = 'Content description is required'
-    if (formData.hasCanvaLink && !formData.canvaLink) newErrors.canvaLink = 'Please provide your Canva link'
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address'
+    }
+
+    // Event date validation - cannot be in the past
+    if (formData.eventDate) {
+      const selectedDate = new Date(formData.eventDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0) // Reset time to start of day for fair comparison
+
+      if (selectedDate < today) {
+        newErrors.eventDate = 'Event date cannot be in the past'
+      }
+    }
+
+    // Time validation - end time must be after start time
+    if (formData.startTime && formData.endTime) {
+      const [startHour, startMinute] = formData.startTime.split(':').map(Number)
+      const [endHour, endMinute] = formData.endTime.split(':').map(Number)
+
+      const startTimeInMinutes = startHour * 60 + startMinute
+      const endTimeInMinutes = endHour * 60 + endMinute
+
+      if (endTimeInMinutes <= startTimeInMinutes) {
+        newErrors.endTime = 'End time must be after start time'
+      }
     }
 
     setErrors(newErrors)
@@ -176,11 +202,11 @@ export default function FormPage() {
       })
 
       // Append files
-      logoFiles.forEach((file) => {
-        submitData.append('logos', file)
-      })
       attachmentFiles.forEach((file) => {
         submitData.append('attachments', file)
+      })
+      visualReferenceFiles.forEach((file) => {
+        submitData.append('visualReferences', file)
       })
 
       const response = await fetch('/api/submit', {
@@ -196,8 +222,8 @@ export default function FormPage() {
 
       // Store uploaded file information
       const uploadedFiles = {
-        logos: logoFiles.map(f => f.name),
         attachments: attachmentFiles.map(f => f.name),
+        visualReferences: visualReferenceFiles.map(f => f.name),
       }
 
       // Save form data to sessionStorage for add-ons page
@@ -274,7 +300,7 @@ export default function FormPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
             <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md">
               {/* Contact Info Section */}
-              <section className="p-4 sm:p-6 border-b-2" style={{ borderColor: '#A6E7DE' }}>
+              <section className="p-4 sm:p-6 border-b-[4px]" style={{ borderColor: '#A6E7DE' }}>
                 <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 pb-2 border-b" style={{ color: '#1C3450', borderColor: '#E5E7EB' }}>
                   Contact Info
                 </h2>
@@ -338,11 +364,13 @@ export default function FormPage() {
             </div>
           </section>
 
-          {/* Event Details Section */}
-          <section className="p-4 sm:p-6 border-b-2" style={{ borderColor: '#A6E7DE' }}>
+          {/* Event Details Section with Subsections */}
+          <section className="p-4 sm:p-6 border-b-[4px]" style={{ borderColor: '#A6E7DE' }}>
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 pb-2 border-b" style={{ color: '#1C3450', borderColor: '#E5E7EB' }}>
               Event Details
             </h2>
+
+            {/* Top Area Fields */}
             <div className="grid md:grid-cols-2 gap-6">
               <Input
                 label="Event Name"
@@ -354,14 +382,6 @@ export default function FormPage() {
                 required
               />
               <Input
-                label="Time"
-                name="time"
-                type="time"
-                value={formData.time}
-                onChange={handleInputChange}
-                tooltip="What time does your event start? (optional)"
-              />
-              <Input
                 label="Event Date"
                 name="eventDate"
                 type="date"
@@ -369,18 +389,28 @@ export default function FormPage() {
                 onChange={handleInputChange}
                 error={errors.eventDate}
                 tooltip="When is your event happening? This helps us prioritize your request"
+                min={new Date().toISOString().split('T')[0]}
                 required
               />
-              <div>
-                <FileUpload
-                  label="Logos"
-                  accept="image/*"
-                  multiple
-                  onChange={setLogoFiles}
-                  tooltip="Upload any logos you'd like included in the design (e.g., service logo, sponsor logos)"
-                  description="Upload company logos, event logos, or sponsor logos. Accepted formats: PNG, JPG, SVG"
-                />
-              </div>
+              <Input
+                label="Start Time"
+                name="startTime"
+                type="time"
+                value={formData.startTime}
+                onChange={handleInputChange}
+                error={errors.startTime}
+                tooltip="What time does your event start?"
+                required
+              />
+              <Input
+                label="End Time"
+                name="endTime"
+                type="time"
+                value={formData.endTime}
+                onChange={handleInputChange}
+                error={errors.endTime}
+                tooltip="What time does your event end? (optional)"
+              />
               <Input
                 label="Location"
                 name="location"
@@ -389,109 +419,128 @@ export default function FormPage() {
                 tooltip="Where is the event taking place? (e.g., MUSC Room 201, Virtual, TBD)"
               />
               <Input
-                label="Link"
-                name="link"
-                type="url"
-                placeholder="https://"
-                value={formData.link}
+                label="Collaboration Details"
+                name="collaborationDetails"
+                value={formData.collaborationDetails}
                 onChange={handleInputChange}
-                tooltip="A relevant URL for your event (e.g., registration link, event page, Instagram link)"
+                tooltip="If this is a collaboration event, please specify which services, organizations, or 3rd parties you're collaborating with"
+                placeholder="e.g., Collaborating with Pride, WGEN, Campus Events, and/or 3rd party organizations"
               />
             </div>
-          </section>
 
-          {/* Canva Link Section */}
-          <section className="p-4 sm:p-6 border-b-2" style={{ borderColor: '#A6E7DE' }}>
-            <div className="flex items-center justify-between pb-2 border-b" style={{ color: '#1C3450', borderColor: '#E5E7EB' }}>
-              <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                Do you already have a Canva design?
-                <Tooltip content="If you started a design in Canva, share the view/edit link so we can build from it. Make sure link sharing is enabled." />
-              </h2>
-              <label className="flex items-center gap-2 text-sm font-semibold">
-                <input
-                  type="checkbox"
-                  name="hasCanvaLink"
-                  checked={formData.hasCanvaLink}
-                  onChange={handleCheckboxChange}
-                  className="w-5 h-5"
-                />
-                <span>Yes, I have a Canva link</span>
-              </label>
+            {/* Subsection: Visual References */}
+            <div className="mt-6">
+              <div className="flex items-center justify-between px-4 py-3 border border-gray-300 rounded-md">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  Do you have any visual references or mockups?
+                  <Tooltip content="Share any existing designs, mockups, inspiration images, or links (Canva, Figma, etc.) that can help guide the design process" />
+                </label>
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    name="hasVisualReferences"
+                    checked={formData.hasVisualReferences}
+                    onChange={handleCheckboxChange}
+                    className="w-5 h-5"
+                  />
+                  <span>Yes</span>
+                </label>
+              </div>
+
+              {formData.hasVisualReferences && (
+                <div className="mt-4 space-y-4">
+                  <Input
+                    label="Link to Design"
+                    name="visualReferenceLink"
+                    type="url"
+                    placeholder="https://www.canva.com/... or https://www.figma.com/..."
+                    value={formData.visualReferenceLink}
+                    onChange={handleInputChange}
+                    tooltip="Paste a link to your Canva, Figma, or other design tool. Make sure link sharing is enabled."
+                  />
+                  <FileUpload
+                    label="Upload Reference Files"
+                    accept="image/*,.pdf"
+                    multiple
+                    onChange={setVisualReferenceFiles}
+                    description="Upload mockups, sketches, inspiration images, or reference designs (PNG, JPG, PDF)"
+                    tooltip="Upload any visual references that can help guide the design"
+                  />
+                </div>
+              )}
             </div>
 
-            {formData.hasCanvaLink && (
-              <div className="mt-4">
+            {/* Subsection: Call To Action & Link */}
+            <div className="mt-6">
+              <div className="grid md:grid-cols-2 gap-6">
                 <Input
-                  label="Canva Link"
-                  name="canvaLink"
-                  type="url"
-                  placeholder="https://www.canva.com/..."
-                  value={formData.canvaLink}
+                  label="Call To Action"
+                  name="callToAction"
+                  placeholder="e.g., Register Now, Join Us, Learn More"
+                  value={formData.callToAction}
                   onChange={handleInputChange}
-                  error={errors.canvaLink}
-                  tooltip="Paste your Canva share link with edit access so we can make updates."
+                  error={errors.callToAction}
+                  tooltip="A short phrase that tells people what action to take (e.g., 'Register Now', 'Join Us', 'Learn More', 'RSVP Today'). This is the main message you want viewers to see."
+                  required
+                />
+                <Input
+                  label="Link"
+                  name="link"
+                  type="url"
+                  placeholder="https://"
+                  value={formData.link}
+                  onChange={handleInputChange}
+                  tooltip="QR codes and any other links you want attached to your graphic (e.g., registration link, event page, Instagram link)"
                 />
               </div>
-            )}
-          </section>
+            </div>
 
-          {/* Call To Action Section */}
-          <section className="p-4 sm:p-6 border-b-2" style={{ borderColor: '#A6E7DE' }}>
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 pb-2 border-b flex items-center gap-2" style={{ color: '#1C3450', borderColor: '#E5E7EB' }}>
-              Call To Action
-              <Tooltip content="A short phrase that tells people what action to take (e.g., 'Register Now', 'Join Us', 'Learn More', 'RSVP Today'). This is the main message you want viewers to see." />
-            </h2>
-            <Input
-              name="callToAction"
-              placeholder="e.g., Register Now, Join Us, Learn More"
-              value={formData.callToAction}
-              onChange={handleInputChange}
-            />
-          </section>
-
-          {/* Content Section */}
-          <section className="p-4 sm:p-6 border-b-2" style={{ borderColor: '#A6E7DE' }}>
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 pb-2 border-b flex items-center gap-2" style={{ color: '#1C3450', borderColor: '#E5E7EB' }}>
-              Content
-              <Tooltip content="Describe all the text, information, and key details you want on your design. Include event descriptions, important dates, pricing, or any other information viewers should know." />
-            </h2>
-            <TextArea
-              name="content"
-              rows={6}
-              placeholder="Describe the content you'd like to include in your design..."
-              value={formData.content}
-              onChange={handleInputChange}
-              error={errors.content}
-              required
-            />
-          </section>
-
-          {/* Additional Info Section */}
-          <section className="p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 pb-2 border-b flex items-center gap-2" style={{ color: '#1C3450', borderColor: '#E5E7EB' }}>
-              Additional links, references, QR codes or linktree
-              <Tooltip content="Any extra details, inspiration links, QR codes you need created, Linktree URLs, reference materials, or files that will help us create your design" />
-            </h2>
-            <TextArea
-              name="additionalInfo"
-              rows={4}
-              placeholder="Include any additional information, links, or references..."
-              value={formData.additionalInfo}
-              onChange={handleInputChange}
-            />
-            <div className="mt-4">
-              <FileUpload
-                label="Additional Attachments"
-                accept="*"
-                multiple
-                onChange={setAttachmentFiles}
-                description="Upload reference materials, inspiration images, previous designs, or any documents that will help us understand your vision"
+            {/* Subsection: Additional Information */}
+            <div className="mt-6">
+              <Input
+                label="Additional Information"
+                name="additionalInfo"
+                placeholder="Include any additional details for the designer..."
+                value={formData.additionalInfo}
+                onChange={handleInputChange}
+                tooltip="Any other additional details you'd like to let the designer know"
               />
             </div>
+
+            {/* Subsection: Content */}
+            <div className="mt-8">
+              <h3 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2" style={{ color: '#1C3450' }}>
+                Content
+                <Tooltip content="Describe all the text, information, and key details you want on your design. Include event descriptions, important dates, pricing, the look and style of the graphic, or any other information viewers should know." />
+              </h3>
+              <TextArea
+                name="content"
+                rows={8}
+                placeholder="Describe the content you'd like to include in your design..."
+                value={formData.content}
+                onChange={handleInputChange}
+                error={errors.content}
+                required
+              />
+            </div>
+          </section>
+
+          {/* Additional Attachments Section */}
+          <section className="p-4 sm:p-6 border-b-[4px]" style={{ borderColor: '#A6E7DE' }}>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 pb-2 border-b flex items-center gap-2" style={{ color: '#1C3450', borderColor: '#E5E7EB' }}>
+              Additional Attachments
+              <Tooltip content="Upload any additional documents or files that will help us understand your project" />
+            </h2>
+            <FileUpload
+              accept="*"
+              multiple
+              onChange={setAttachmentFiles}
+              description="Upload any additional documents or files that will help us understand your project"
+            />
           </section>
 
           {/* Submit Button */}
-          <div className="px-4 sm:px-6 py-6 border-t-2" style={{ borderColor: '#A6E7DE', backgroundColor: '#F9FAFB' }}>
+          <div className="px-4 sm:px-6 py-6 border-t-[4px]" style={{ borderColor: '#A6E7DE', backgroundColor: '#F9FAFB' }}>
             <div className="flex flex-col sm:flex-row justify-end gap-4">
               <Button
                 type="button"

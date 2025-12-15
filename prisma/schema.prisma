@@ -42,9 +42,13 @@ model Project {
   service                 String
   eventName               String
   eventDate               DateTime
-  eventTime               String?
+  eventTime               String?         // Deprecated - use eventStartTime instead
+  eventStartTime          String?
+  eventEndTime            String?
   eventLocation           String?
   eventLink               String?
+  collaborationDetails    String?
+  visualReferenceLink     String?
   content                 String          @default("")
   callToAction            String?
   additionalInfo          String?

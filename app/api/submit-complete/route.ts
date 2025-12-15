@@ -32,9 +32,13 @@ export async function POST(request: NextRequest) {
         service: data.service,
         eventName: data.eventName,
         eventDate: new Date(data.eventDate),
-        eventTime: data.time || null,
+        eventTime: data.startTime || null,
+        eventStartTime: data.startTime || null,
+        eventEndTime: data.endTime || null,
         eventLocation: data.location || null,
         eventLink: data.link || null,
+        collaborationDetails: data.collaborationDetails || null,
+        visualReferenceLink: data.visualReferenceLink || null,
         content: data.content || '',
         callToAction: data.callToAction || null,
         additionalInfo: data.additionalInfo || null,
@@ -105,11 +109,18 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email with tracking link
     try {
+      // Calculate add-ons total (excluding package price)
+      const packagePrice = data.selectedPackage?.price || 0
+      const totalPrice = data.totalPrice || 0
+      const addOnsTotal = totalPrice - packagePrice
+
       await sendConfirmationEmail(
         data.email,
         data.name,
         data.eventName,
-        ticketId || project.submissionId
+        ticketId || project.submissionId,
+        addOnsTotal,
+        selectedAddOnNames
       )
     } catch (error) {
       console.error('Failed to send confirmation email:', error)

@@ -25,7 +25,7 @@ export const Input: React.FC<InputProps> = ({ label, error, tooltip, className =
         </label>
       )}
       <input
-        className={`w-full px-4 py-2 border ${
+        className={`w-full px-4 py-3 text-base border ${
           error ? 'border-red-500' : 'border-gray-300'
         } rounded-md focus:outline-none transition ${
           disabled ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''

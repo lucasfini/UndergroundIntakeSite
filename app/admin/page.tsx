@@ -39,7 +39,7 @@ export default function AdminPage() {
       if (storedUserName) setUserName(storedUserName)
       loadPricingData()
     }
-  }, [])
+  }, [router])
 
   const loadPricingData = async () => {
     try {
@@ -78,7 +78,8 @@ export default function AdminPage() {
         sessionStorage.setItem('admin_user_name', data.user.name || data.user.email)
         setUserName(data.user.name || data.user.email)
         setIsAuthenticated(true)
-        loadPricingData()
+        // Redirect to overview page
+        router.push('/admin/overview')
       } else {
         alert(data.error || 'Authentication failed')
         await msalInstance.logout()
@@ -148,6 +149,7 @@ export default function AdminPage() {
       name: 'New Package',
       price: 0,
       color: '#3b82f6',
+      image: '',
       includes: [],
       turnaround: '',
     }
@@ -390,16 +392,165 @@ export default function AdminPage() {
                         }
                       />
                       <div className="md:col-span-2">
-                        <TextArea
-                          label="Includes (one per line)"
-                          rows={3}
-                          value={pkg.includes.join('\n')}
+                        <Input
+                          label="Image Path"
+                          value={pkg.image || ''}
                           onChange={(e) =>
-                            updatePackage(pkg.id, {
-                              includes: e.target.value.split('\n').filter(Boolean),
-                            })
+                            updatePackage(pkg.id, { image: e.target.value })
                           }
+                          placeholder="/images/your-image.png"
                         />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Package Includes
+                        </label>
+                        <div className="space-y-3 border border-gray-300 rounded-lg p-4 bg-gray-50">
+                          {pkg.includes && pkg.includes.length > 0 ? (
+                            pkg.includes.map((item, idx) => {
+                              // Handle both string format (legacy) and object format
+                              if (typeof item === 'string') {
+                                return (
+                                  <div key={idx} className="flex gap-2 items-center">
+                                    <Input
+                                      value={item}
+                                      onChange={(e) => {
+                                        const newIncludes = [...pkg.includes]
+                                        newIncludes[idx] = e.target.value
+                                        updatePackage(pkg.id, { includes: newIncludes })
+                                      }}
+                                      placeholder="Item description"
+                                      className="flex-1"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newIncludes = pkg.includes.filter((_, i) => i !== idx)
+                                        updatePackage(pkg.id, { includes: newIncludes })
+                                      }}
+                                      className="text-red-600 hover:text-red-800 px-2"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                )
+                              }
+
+                              // Handle structured object format
+                              if (item.type === 'header') {
+                                return (
+                                  <div key={idx} className="flex gap-2 items-center bg-blue-50 p-2 rounded">
+                                    <span className="text-xs font-semibold text-gray-600 w-20">HEADER:</span>
+                                    <Input
+                                      value={item.content || ''}
+                                      onChange={(e) => {
+                                        const newIncludes = [...pkg.includes]
+                                        newIncludes[idx] = { ...item, content: e.target.value }
+                                        updatePackage(pkg.id, { includes: newIncludes })
+                                      }}
+                                      placeholder="Header text"
+                                      className="flex-1"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newIncludes = pkg.includes.filter((_, i) => i !== idx)
+                                        updatePackage(pkg.id, { includes: newIncludes })
+                                      }}
+                                      className="text-red-600 hover:text-red-800 px-2"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                )
+                              }
+
+                              return (
+                                <div key={idx} className="grid grid-cols-12 gap-2 items-start">
+                                  <div className="col-span-2">
+                                    <Input
+                                      value={item.size || ''}
+                                      onChange={(e) => {
+                                        const newIncludes = [...pkg.includes]
+                                        newIncludes[idx] = { ...item, size: e.target.value }
+                                        updatePackage(pkg.id, { includes: newIncludes })
+                                      }}
+                                      placeholder="Size"
+                                    />
+                                  </div>
+                                  <div className="col-span-5">
+                                    <Input
+                                      value={item.item || ''}
+                                      onChange={(e) => {
+                                        const newIncludes = [...pkg.includes]
+                                        newIncludes[idx] = { ...item, item: e.target.value }
+                                        updatePackage(pkg.id, { includes: newIncludes })
+                                      }}
+                                      placeholder="Item"
+                                    />
+                                  </div>
+                                  <div className="col-span-2">
+                                    <Input
+                                      value={item.quantity || ''}
+                                      onChange={(e) => {
+                                        const newIncludes = [...pkg.includes]
+                                        newIncludes[idx] = { ...item, quantity: e.target.value }
+                                        updatePackage(pkg.id, { includes: newIncludes })
+                                      }}
+                                      placeholder="Qty"
+                                    />
+                                  </div>
+                                  <div className="col-span-2">
+                                    <Input
+                                      value={item.note || ''}
+                                      onChange={(e) => {
+                                        const newIncludes = [...pkg.includes]
+                                        newIncludes[idx] = { ...item, note: e.target.value }
+                                        updatePackage(pkg.id, { includes: newIncludes })
+                                      }}
+                                      placeholder="Note"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newIncludes = pkg.includes.filter((_, i) => i !== idx)
+                                      updatePackage(pkg.id, { includes: newIncludes })
+                                    }}
+                                    className="col-span-1 text-red-600 hover:text-red-800 text-center"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              )
+                            })
+                          ) : (
+                            <p className="text-sm text-gray-500 italic">No items added yet</p>
+                          )}
+
+                          <div className="flex gap-2 mt-3 pt-3 border-t border-gray-300">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newIncludes = [...(pkg.includes || []), { size: '', item: '', quantity: '', note: '' }]
+                                updatePackage(pkg.id, { includes: newIncludes })
+                              }}
+                              className="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                            >
+                              + Add Item
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newIncludes = [...(pkg.includes || []), { type: 'header' as const, content: '' }]
+                                updatePackage(pkg.id, { includes: newIncludes })
+                              }}
+                              className="text-sm px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
+                            >
+                              + Add Header
+                            </button>
+                          </div>
+                        </div>
                       </div>
                       <div className="md:col-span-2">
                         <Input
