@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
             <div className="h-px flex-1 max-w-32" style={{ backgroundColor: '#A6E7DE' }}></div>
           </div>
           <p className="text-xs sm:text-sm text-white/90 font-medium">
-            © 2025 Underground Media + Design - McMaster Student Union
+            © 2025 Underground Media + Design - McMaster Students Union
           </p>
           <div className="flex justify-center gap-4 text-xs text-white/75">
             <Link href="/about" className="hover:text-white transition" style={{ color: '#A6E7DE' }}>

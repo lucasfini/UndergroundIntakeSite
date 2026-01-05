@@ -41,7 +41,7 @@ If you have any immediate questions, please contact us at ugprint@msu.mcmaster.c
 
 Best regards,
 Underground Media + Design Team
-McMaster Student Union
+McMaster Students Union
 
 ---
 This is an automated message. Please do not reply to this email.
@@ -108,7 +108,7 @@ If you have any questions, please contact us at ugmanager@msu.mcmaster.ca.
 
 Best regards,
 Underground Design Team
-McMaster Student Union
+McMaster Students Union
 
 ---
 This is an automated message. Please do not reply to this email.
@@ -269,7 +269,7 @@ export async function sendStatusUpdateEmail(data: StatusUpdateEmailData): Promis
 
       <p>Best regards,<br>
       <strong>Underground Design + Media Team</strong><br>
-      McMaster Student Union</p>
+      McMaster Students Union</p>
     </div>
 
     <!-- Footer -->
@@ -308,7 +308,7 @@ If you have any questions, please contact us at ugmanager@msu.mcmaster.ca.
 
 Best regards,
 Underground Design + Media Team
-McMaster Student Union
+McMaster Students Union
 
 ---
 This is an automated message. Please do not reply to this email.

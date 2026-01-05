@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
+import { LocationMap } from '@/components/LocationMap'
 
 export default function SelectServicePage() {
   const router = useRouter()
@@ -114,7 +115,7 @@ export default function SelectServicePage() {
                   Hours: 10am – 4pm, Monday – Friday
                 </p>
                 <p className="text-sm text-[#1C3450] font-semibold">
-                  Located in: McMaster University Student Centre
+                  Located In: McMaster University Student Centre, Lower Level of MUSC, Room B117
                 </p>
                 <button
                   onClick={() => setShowMap((prev) => !prev)}
@@ -122,28 +123,7 @@ export default function SelectServicePage() {
                 >
                   {showMap ? 'Hide Location' : 'Show Location'}
                 </button>
-                {showMap && (
-                  <div className="mt-4 rounded-lg overflow-hidden border border-[#1C3450]/20 relative">
-                    <iframe
-                      title="Underground location map"
-                      src="https://www.google.com/maps?q=McMaster+University+Student+Centre,+Hamilton,+ON&hl=en&z=18&output=embed&t=k"
-                      width="100%"
-                      height="300"
-                      style={{ border: 0 }}
-                      allowFullScreen
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                    />
-                    <div className="bg-[#f7fbfa] text-[#1C3450] p-3 text-sm font-medium space-y-1">
-                      <div className="font-semibold flex items-center gap-2">
-                        <span className="text-red-600">📍</span>
-                        <span>1280 Main St W, Hamilton, ON</span>
-                      </div>
-                      <div>McMaster University Student Centre, B117 Lower Level</div>
-                      <div>Hamilton, ON L8S 4S4</div>
-                    </div>
-                  </div>
-                )}
+                {showMap && <LocationMap />}
               </div>
             </div>
           </div>
